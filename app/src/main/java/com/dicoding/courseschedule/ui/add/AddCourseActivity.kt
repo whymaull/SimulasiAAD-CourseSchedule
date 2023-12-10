@@ -16,7 +16,6 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-@Suppress("DEPRECATION")
 class AddCourseActivity : AppCompatActivity(), TimePickerFragment.DialogTimeListener {
 
     private var startTime: String = ""
@@ -27,18 +26,10 @@ class AddCourseActivity : AppCompatActivity(), TimePickerFragment.DialogTimeList
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_course)
 
-        supportActionBar?.title = getString(R.string.add_course)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         val factory = AddCourseViewModelFactory.createFactory(this)
         viewModel = ViewModelProvider(this,factory)[AddCourseViewModel::class.java]
-
-        viewModel.saved.observe(this) {
-            if (it.getContentIfNotHandled() == true) {
-                onBackPressed()
-            } else {
-                Toast.makeText(applicationContext, "Time cant be empty", Toast.LENGTH_SHORT).show()
-            }
-        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -48,17 +39,37 @@ class AddCourseActivity : AppCompatActivity(), TimePickerFragment.DialogTimeList
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.action_insert -> {
-                val courseName =
-                    findViewById<TextInputEditText>(R.id.add_ed_course_name).text.toString().trim()
-                val day = findViewById<Spinner>(R.id.spinner_day).selectedItemPosition
-                val lecturer =
-                    findViewById<TextInputEditText>(R.id.add_ed_lecture).text.toString().trim()
-                val note = findViewById<TextInputEditText>(R.id.add_ed_note).text.toString().trim()
-
-                viewModel.insertCourse(courseName, day, startTime, endTime, lecturer, note)
-                Toast.makeText(applicationContext, "added", Toast.LENGTH_SHORT).show()
+            android.R.id.home -> {
+                finish()
                 true
+            }
+            R.id.action_insert -> {
+                val edCourseName = findViewById<TextInputEditText>(R.id.add_ed_course_name).text.toString()
+                val spinnerDay = findViewById<Spinner>(R.id.spinner_day).selectedItem.toString()
+                val spinnerDayNumber = getDayNumberByDayName(spinnerDay)
+                val edLecturer = findViewById<TextInputEditText>(R.id.add_ed_lecture).text.toString()
+                val edNote = findViewById<TextInputEditText>(R.id.add_ed_note).text.toString()
+
+                when {
+                    edCourseName.isEmpty() -> false
+                    startTime.isEmpty() -> false
+                    endTime.isEmpty() -> false
+                    spinnerDayNumber == -1 -> false
+                    edLecturer.isEmpty() -> false
+                    edNote.isEmpty() -> false
+                    else -> {
+                        viewModel.insertCourse(
+                            edCourseName,
+                            spinnerDayNumber,
+                            startTime,
+                            endTime,
+                            edLecturer,
+                            edNote
+                        )
+                        finish()
+                        true
+                    }
+                }
             }
             else -> super.onOptionsItemSelected(item)
         }
@@ -89,5 +100,9 @@ class AddCourseActivity : AppCompatActivity(), TimePickerFragment.DialogTimeList
                 endTime = timeFormat.format(calendar.time)
             }
         }
+    }
+    private fun getDayNumberByDayName(dayName: String): Int {
+        val days = resources.getStringArray(R.array.day)
+        return days.indexOf(dayName)
     }
 }

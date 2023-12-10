@@ -37,14 +37,14 @@ class DailyReminder : BroadcastReceiver() {
     fun setDailyReminder(context: Context) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, DailyReminder::class.java)
-        val calendar = java.util.Calendar.getInstance().apply {
-            timeInMillis = java.lang.System.currentTimeMillis()
+        val calendar = Calendar.getInstance().apply {
+            timeInMillis = System.currentTimeMillis()
             set(Calendar.HOUR_OF_DAY, 6)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
         }
 
-        val pendingIntent = PendingIntent.getBroadcast(context, ID_REPEATING, intent, 0)
+        val pendingIntent = PendingIntent.getBroadcast(context, ID_REPEATING, intent, PendingIntent.FLAG_IMMUTABLE)
         alarmManager.setInexactRepeating(
             AlarmManager.RTC_WAKEUP,
             calendar.timeInMillis,
@@ -56,7 +56,7 @@ class DailyReminder : BroadcastReceiver() {
     fun cancelAlarm(context: Context) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, DailyReminder::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(context, ID_REPEATING, intent, 0)
+        val pendingIntent = PendingIntent.getBroadcast(context, ID_REPEATING, intent, PendingIntent.FLAG_IMMUTABLE)
         pendingIntent.cancel()
 
         alarmManager.cancel(pendingIntent)
